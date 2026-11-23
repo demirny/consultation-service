@@ -12,10 +12,10 @@
 
 ## Локальный запуск
 
-Подставьте адрес Git-репозитория. Для копии из сдаваемой папки можно указать её полный путь вместо URL.
+Проект сдаётся в ветке develop.
 
 ```bash
-git clone -b develop <URL-или-путь-к-репозиторию> college-consultations
+git clone -b develop https://github.com/demirny/consultation-service.git college-consultations
 cd college-consultations
 npm install
 cp .env.example .env
