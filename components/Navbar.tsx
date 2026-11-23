@@ -1,7 +1,10 @@
 import Link from "next/link";
 import { GraduationCap } from "lucide-react";
+import { currentUser } from "@/lib/auth";
+import LogoutButton from "./LogoutButton";
 
-export default function Navbar() {
+export default async function Navbar() {
+  const user = await currentUser();
   return (
     <header className="border-b border-emerald-950/10 bg-white">
       <nav aria-label="Главное меню" className="wrap flex min-h-20 flex-wrap items-center justify-between gap-3 py-3">
@@ -10,8 +13,12 @@ export default function Navbar() {
           Консультации
         </Link>
         <div className="flex flex-wrap items-center gap-4 text-sm font-semibold sm:gap-6">
-          <Link href="/consultations">Расписание</Link>
-          <Link href="/login" className="btn secondary">Войти</Link>
+          <Link href="/consultations" className="hover:underline">Расписание</Link>
+          {user ? <>
+            <Link className="hover:underline" href={user.role === "TEACHER" ? "/dashboard/teacher" : "/dashboard/student"}>Личный кабинет</Link>
+            <span className="muted">{user.fullName}</span>
+            <LogoutButton />
+          </> : <Link href="/login" className="btn secondary">Войти</Link>}
         </div>
       </nav>
     </header>
