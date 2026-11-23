@@ -13,10 +13,15 @@ export class ApiError extends Error {
 export function endpoint<Args extends unknown[]>(handler: (...args: Args) => Promise<Response>) {
   return async (...args: Args) => {
     try {
+      const request = args[0];
+      if (request instanceof Request && request.method !== "GET" &&
+          request.headers.get("sec-fetch-site") === "cross-site") {
+        throw new ApiError(403, "Запрос должен быть отправлен со страницы сервиса.");
+      }
       return await handler(...args);
     } catch (error) {
       if (error instanceof ApiError) return Response.json({ error: error.message }, { status: error.status });
-      if (error instanceof z.ZodError) return Response.json({ error: error.issues[0].message, issues: error.flatten().fieldErrors }, { status: 400 });
+      if (error instanceof z.ZodError) return Response.json({ error: error.issues[0].message, issues: z.flattenError(error).fieldErrors }, { status: 400 });
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === "P2002") return Response.json({ error: "Такая запись уже существует." }, { status: 409 });
         if (error.code === "P2025") return Response.json({ error: "Запись не найдена." }, { status: 404 });
