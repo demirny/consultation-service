@@ -1,0 +1,50 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String         @id @default(cuid())
+  email         String         @unique
+  passwordHash  String
+  fullName      String
+  role          String
+  groupName     String?
+  consultations Consultation[]
+  bookings      Booking[]
+}
+
+model Consultation {
+  id          String    @id @default(cuid())
+  title       String
+  description String
+  subject     String
+  date        DateTime
+  startTime   String
+  endTime     String
+  location    String
+  maxStudents Int
+  teacherId   String
+  teacher     User      @relation(fields: [teacherId], references: [id])
+  bookings    Booking[]
+
+  @@index([teacherId, date])
+  @@index([subject, date])
+}
+
+model Booking {
+  id             String       @id @default(cuid())
+  status         String       @default("CONFIRMED")
+  createdAt      DateTime     @default(now())
+  consultationId String
+  studentId      String
+  consultation   Consultation @relation(fields: [consultationId], references: [id], onDelete: Cascade)
+  student        User         @relation(fields: [studentId], references: [id])
+
+  @@unique([consultationId, studentId])
+  @@index([studentId])
+}
