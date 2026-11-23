@@ -1,19 +1,11 @@
 import { ApiError, endpoint, input, requireUser, writeTransaction } from "@/lib/api";
-import { consultationInclude, consultationView } from "@/lib/consultations";
-import { prisma } from "@/lib/prisma";
+import { consultationInclude } from "@/lib/consultations";
+import { listBookings } from "@/lib/bookings";
 import { bookingSchema } from "@/lib/validations";
 
 export const GET = endpoint(async () => {
   const user = await requireUser();
-  const items = await prisma.booking.findMany({
-    where: user.role === "STUDENT" ? { studentId: user.id } : { consultation: { teacherId: user.id } },
-    include: {
-      consultation: { include: consultationInclude },
-      student: { select: { id: true, fullName: true, groupName: true } },
-    },
-    orderBy: [{ consultation: { date: "asc" } }, { consultation: { startTime: "asc" } }, { id: "asc" }],
-  });
-  return Response.json({ items: items.map((item) => ({ ...item, consultation: consultationView(item.consultation) })) });
+  return Response.json({ items: await listBookings(user) });
 });
 
 export const POST = endpoint(async (request: Request) => {
